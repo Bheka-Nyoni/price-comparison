@@ -1,0 +1,17 @@
+# Node
+node_modules/
+npm-debug.log
+.env
+
+# Flutter
+build/
+.ios/
+.android/
+pubspec.lock
+
+# Python
+__pycache__
+
+# System
+.DS_Store
+Thumbs.db
