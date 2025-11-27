@@ -17,7 +17,7 @@ class _ComparisonPageState extends State<ComparisonPage> {
   List<RetailerPrice> _prices = [];
   bool _loading = true;
   String? _error;
-  Set<String> selectedRetailers = {'r1', 'r2'};
+  Set<String> selectedRetailers = {'r1', 'r2', 'r3', 'r4'};
 
   @override
   void initState() {
@@ -55,10 +55,9 @@ class _ComparisonPageState extends State<ComparisonPage> {
   }
 
   double? getBestPrice() {
-    final prices = _prices
-        .where(
-          (p) => p.price != null && selectedRetailers.contains(p.retailerId),
-        )
+    final filteredPrices = _getFilteredPrices();
+    final prices = filteredPrices
+        .where((p) => p.price != null)
         .map((p) => p.price!)
         .toList();
     if (prices.isEmpty) return null;
@@ -66,156 +65,338 @@ class _ComparisonPageState extends State<ComparisonPage> {
     return prices.first;
   }
 
+  List<RetailerPrice> _getFilteredPrices() {
+    return _prices.where((p) => selectedRetailers.contains(p.retailerId)).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final filteredPrices = _getFilteredPrices();
     final best = getBestPrice();
-    return SafeArea(
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Compare'),
-          leading: BackButton(onPressed: () => Navigator.pop(context)),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: const [
-                    BoxShadow(color: Colors.black12, blurRadius: 6),
-                  ],
+    
+    return Scaffold(
+      backgroundColor: Color(0xFF2563EB),
+      body: Column(
+        children: [
+          // Header matching the design
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 16,
+              bottom: 16,
+              left: 16,
+              right: 16,
+            ),
+            color: Color(0xFF2563EB),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: Icon(Icons.arrow_back, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
                 ),
-                child: Row(
+                SizedBox(width: 16),
+                Text(
+                  'Price Comparison',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Product List Area
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
                   children: [
+                    // Product Info Card
                     Container(
-                      width: 84,
-                      height: 84,
-                      child: const Icon(Icons.image, size: 64),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            widget.product.name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                          // Product Image
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Color(0xFFF5F5F5),
+                              borderRadius: BorderRadius.circular(8),
+                              image: DecorationImage(
+                                image: AssetImage('assets/product_image.png'),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '${widget.product.size} • ${widget.product.category}',
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Avg mock price: R ${MockDatabase.getMockPrice(widget.product.id).toStringAsFixed(2)}',
-                            style: const TextStyle(color: Colors.black54),
+                          SizedBox(width: 16),
+                          // Product Details
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.product.name,
+                                  style: TextStyle(
+                                    color: Color(0xFF3D3D3D),
+                                    fontSize: 16,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  '${widget.product.size} • ${widget.product.category}',
+                                  style: TextStyle(
+                                    color: Color(0xFF3D3D3D),
+                                    fontSize: 14,
+                                    fontFamily: 'Inter',
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
+                    SizedBox(height: 16),
+                    // Retailer Filter Chips
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 8,
+                        children: MockDatabase.retailers.map((r) {
+                          final id = r['id']!;
+                          final name = r['name']!;
+                          final sel = selectedRetailers.contains(id);
+                          return FilterChip(
+                            label: Text(name),
+                            selected: sel,
+                            onSelected: (v) => setState(() {
+                              if (v) {
+                                selectedRetailers.add(id);
+                              } else {
+                                selectedRetailers.remove(id);
+                              }
+                            }),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    // Retailer List
+                    Expanded(
+                      child: _loading
+                          ? ListView.builder(
+                              itemCount: 4,
+                              itemBuilder: (_, __) => const RetailerPlaceholder(),
+                            )
+                          : _error != null
+                              ? Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('Error: $_error'),
+                                      const SizedBox(height: 8),
+                                      ElevatedButton(
+                                        onPressed: () => _loadComparison(),
+                                        child: const Text('Retry'),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : filteredPrices.isEmpty
+                                  ? const Center(child: Text('No comparison data available'))
+                                  : ListView.separated(
+                                      itemCount: filteredPrices.length,
+                                      separatorBuilder: (_, __) => const SizedBox(height: 6),
+                                      itemBuilder: (context, idx) {
+                                        final item = filteredPrices[idx];
+                                        final isBest = item.price != null &&
+                                            best != null &&
+                                            (item.price! - best).abs() < 0.001;
+                                        
+                                        return _buildRetailerCard(item, isBest);
+                                      },
+                                    ),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Wrap(
-                  spacing: 8,
-                  children: MockDatabase.retailers.map((r) {
-                    final id = r['id']!;
-                    final name = r['name']!;
-                    final sel = selectedRetailers.contains(id);
-                    return FilterChip(
-                      label: Text(name),
-                      selected: sel,
-                      onSelected: (v) => setState(() {
-                        if (v)
-                          selectedRetailers.add(id);
-                        else
-                          selectedRetailers.remove(id);
-                      }),
-                    );
-                  }).toList(),
+            ),
+          ),
+        ],
+      ),
+      // Bottom buttons
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.all(16),
+        color: Colors.white,
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Proceed to purchase (future)'),
+                  ),
                 ),
+                child: const Text('Proceed'),
               ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: _loading
-                    ? ListView.builder(
-                        itemCount: 4,
-                        itemBuilder: (_, __) => const RetailerPlaceholder(),
-                      )
-                    : _error != null
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text('Error: $_error'),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: () => _loadComparison(),
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      )
-                    : _prices
-                          .where(
-                            (p) => selectedRetailers.contains(p.retailerId),
-                          )
-                          .isEmpty
-                    ? const Center(child: Text('No comparison data available'))
-                    : ListView.separated(
-                        itemCount: _prices
-                            .where(
-                              (p) => selectedRetailers.contains(p.retailerId),
-                            )
-                            .length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 8),
-                        itemBuilder: (context, idx) {
-                          final list = _prices
-                              .where(
-                                (p) => selectedRetailers.contains(p.retailerId),
-                              )
-                              .toList();
-                          final item = list[idx];
-                          final isBest =
-                              item.price != null &&
-                              best != null &&
-                              (item.price! - best).abs() < 0.001;
-                          return RetailerCard(price: item, highlight: isBest);
-                        },
-                      ),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton(
+              onPressed: () => _loadComparison(partial: true),
+              child: const Text('Load Partial'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRetailerCard(RetailerPrice price, bool isBest) {
+    // Enhanced retailer mapping with better ID matching
+    final Map<String, Map<String, String>> retailerMapping = {
+      'r2': { // Checkers
+        'logo': 'assets/checkers.png',
+        'name': 'Checkers',
+      },
+      'r3': { // Woolworths
+        'logo': 'assets/woolworths.png', 
+        'name': 'Woolworths',
+      },
+      'r1': { // Pick n Pay
+        'logo': 'assets/picknpay.png',
+        'name': 'Pick n Pay',
+      },
+      'r4': { // Game
+        'logo': 'assets/game.png',
+        'name': 'Game',
+      },
+    };
+
+    // Try to get retailer info from mapping
+    final retailerInfo = retailerMapping[price.retailerId] ?? retailerMapping['r4']!;
+    final String logoAsset = retailerInfo['logo']!;
+    
+    return Container(
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: isBest ? Color(0xFFEFF6FF) : Colors.white, // Highlight lowest price with light blue background
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+        border: isBest ? Border.all( // Add border for lowest price
+          color: Color(0xFF2563EB),
+          width: 2,
+        ) : null,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Product Image
+          Container(
+            width: 70,
+            height: 70,
+            decoration: BoxDecoration(
+              color: Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(8),
+              image: DecorationImage(
+                image: AssetImage('assets/product_image.png'),
+                fit: BoxFit.cover,
               ),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Proceed to purchase (future)'),
-                            ),
-                          ),
-                      child: const Text('Proceed'),
+            ),
+          ),
+          SizedBox(width: 8),
+          // Retailer and Product Details
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Retailer Logo ONLY (no name) - BIGGER
+                Container(
+                  width: 90,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(6),
+                    image: DecorationImage(
+                      image: AssetImage(logoAsset),
+                      fit: BoxFit.contain,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () => _loadComparison(partial: true),
-                    child: const Text('Load Partial'),
+                ),
+                SizedBox(height: 1),
+                // Product Name
+                Text(
+                  widget.product.name,
+                  style: TextStyle(
+                    color: Color(0xFF3D3D3D),
+                    fontSize: 13,
+                    fontFamily: 'Inter',
+                    fontWeight: FontWeight.w500,
                   ),
-                ],
-              ),
-            ],
+                ),
+                SizedBox(height: 1),
+                // Price - Highlight lowest price
+                Text(
+                  price.price != null ? 'R${price.price!.toStringAsFixed(2)}' : 'Price not available',
+                  style: TextStyle(
+                    color: Color(0xFF2563EB),
+                    fontSize: isBest ? 18 : 16, // Make lowest price larger
+                    fontFamily: 'Inter',
+                    fontWeight: isBest ? FontWeight.w800 : FontWeight.w700, // Make lowest price bolder
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+          // Lowest Price Badge - Changed to "Lowest"
+          if (isBest && price.price != null)
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: Color(0xFF2563EB),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                'Lowest', // Changed from "Best Price" to "Lowest"
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontFamily: 'Inter',
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
