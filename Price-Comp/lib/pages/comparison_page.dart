@@ -66,14 +66,16 @@ class _ComparisonPageState extends State<ComparisonPage> {
   }
 
   List<RetailerPrice> _getFilteredPrices() {
-    return _prices.where((p) => selectedRetailers.contains(p.retailerId)).toList();
+    return _prices
+        .where((p) => selectedRetailers.contains(p.retailerId))
+        .toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final filteredPrices = _getFilteredPrices();
     final best = getBestPrice();
-    
+
     return Scaffold(
       backgroundColor: Color(0xFF2563EB),
       body: Column(
@@ -212,36 +214,41 @@ class _ComparisonPageState extends State<ComparisonPage> {
                       child: _loading
                           ? ListView.builder(
                               itemCount: 4,
-                              itemBuilder: (_, __) => const RetailerPlaceholder(),
+                              itemBuilder: (_, __) =>
+                                  const RetailerPlaceholder(),
                             )
                           : _error != null
-                              ? Center(
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text('Error: $_error'),
-                                      const SizedBox(height: 8),
-                                      ElevatedButton(
-                                        onPressed: () => _loadComparison(),
-                                        child: const Text('Retry'),
-                                      ),
-                                    ],
+                          ? Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text('Error: $_error'),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: () => _loadComparison(),
+                                    child: const Text('Retry'),
                                   ),
-                                )
-                              : filteredPrices.isEmpty
-                                  ? const Center(child: Text('No comparison data available'))
-                                  : ListView.separated(
-                                      itemCount: filteredPrices.length,
-                                      separatorBuilder: (_, __) => const SizedBox(height: 6),
-                                      itemBuilder: (context, idx) {
-                                        final item = filteredPrices[idx];
-                                        final isBest = item.price != null &&
-                                            best != null &&
-                                            (item.price! - best).abs() < 0.001;
-                                        
-                                        return _buildRetailerCard(item, isBest);
-                                      },
-                                    ),
+                                ],
+                              ),
+                            )
+                          : filteredPrices.isEmpty
+                          ? const Center(
+                              child: Text('No comparison data available'),
+                            )
+                          : ListView.separated(
+                              itemCount: filteredPrices.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: 6),
+                              itemBuilder: (context, idx) {
+                                final item = filteredPrices[idx];
+                                final isBest =
+                                    item.price != null &&
+                                    best != null &&
+                                    (item.price! - best).abs() < 0.001;
+
+                                return _buildRetailerCard(item, isBest);
+                              },
+                            ),
                     ),
                   ],
                 ),
@@ -259,9 +266,7 @@ class _ComparisonPageState extends State<ComparisonPage> {
             Expanded(
               child: ElevatedButton(
                 onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Proceed to purchase (future)'),
-                  ),
+                  const SnackBar(content: Text('Proceed to purchase (future)')),
                 ),
                 child: const Text('Proceed'),
               ),
@@ -280,32 +285,39 @@ class _ComparisonPageState extends State<ComparisonPage> {
   Widget _buildRetailerCard(RetailerPrice price, bool isBest) {
     // Enhanced retailer mapping with better ID matching
     final Map<String, Map<String, String>> retailerMapping = {
-      'r2': { // Checkers
+      'r2': {
+        // Checkers
         'logo': 'assets/checkers.png',
         'name': 'Checkers',
       },
-      'r3': { // Woolworths
-        'logo': 'assets/woolworths.png', 
+      'r3': {
+        // Woolworths
+        'logo': 'assets/woolworths.png',
         'name': 'Woolworths',
       },
-      'r1': { // Pick n Pay
+      'r1': {
+        // Pick n Pay
         'logo': 'assets/picknpay.png',
         'name': 'Pick n Pay',
       },
-      'r4': { // Game
+      'r4': {
+        // Game
         'logo': 'assets/game.png',
         'name': 'Game',
       },
     };
 
     // Try to get retailer info from mapping
-    final retailerInfo = retailerMapping[price.retailerId] ?? retailerMapping['r4']!;
+    final retailerInfo =
+        retailerMapping[price.retailerId] ?? retailerMapping['r4']!;
     final String logoAsset = retailerInfo['logo']!;
-    
+
     return Container(
       padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: isBest ? Color(0xFFEFF6FF) : Colors.white, // Highlight lowest price with light blue background
+        color: isBest
+            ? Color(0xFFEFF6FF)
+            : Colors.white, // Highlight lowest price with light blue background
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -314,10 +326,13 @@ class _ComparisonPageState extends State<ComparisonPage> {
             offset: Offset(0, 2),
           ),
         ],
-        border: isBest ? Border.all( // Add border for lowest price
-          color: Color(0xFF2563EB),
-          width: 2,
-        ) : null,
+        border: isBest
+            ? Border.all(
+                // Add border for lowest price
+                color: Color(0xFF2563EB),
+                width: 2,
+              )
+            : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -367,12 +382,16 @@ class _ComparisonPageState extends State<ComparisonPage> {
                 SizedBox(height: 1),
                 // Price - Highlight lowest price
                 Text(
-                  price.price != null ? 'R${price.price!.toStringAsFixed(2)}' : 'Price not available',
+                  price.price != null
+                      ? 'R${price.price!.toStringAsFixed(2)}'
+                      : 'Price not available',
                   style: TextStyle(
                     color: Color(0xFF2563EB),
                     fontSize: isBest ? 18 : 16, // Make lowest price larger
                     fontFamily: 'Inter',
-                    fontWeight: isBest ? FontWeight.w800 : FontWeight.w700, // Make lowest price bolder
+                    fontWeight: isBest
+                        ? FontWeight.w800
+                        : FontWeight.w700, // Make lowest price bolder
                   ),
                 ),
               ],
