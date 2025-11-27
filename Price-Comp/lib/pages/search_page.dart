@@ -24,6 +24,8 @@ class _SearchPageState extends State<SearchPage> {
   double? _filterMinPrice;
   double? _filterMaxPrice;
 
+  String? _selectedQuickSearch;
+
   @override
   void initState() {
     super.initState();
@@ -136,7 +138,8 @@ class _SearchPageState extends State<SearchPage> {
                           'Filters',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'Inter',
                           ),
                         ),
                         IconButton(
@@ -232,6 +235,36 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  Widget _quickChip(String label) {
+    final bool selected = _selectedQuickSearch == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedQuickSearch = label;
+          _ctrl.text = label;
+        });
+        _submitSearch();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          color: selected ? const Color(0xFF2563EB) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF2563EB)),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontFamily: 'Inter',
+            fontWeight: FontWeight.w500,
+            color: selected ? Colors.white : const Color(0xFF3D3D3D),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -260,7 +293,23 @@ class _SearchPageState extends State<SearchPage> {
         body: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Quick Search Bar
+              SizedBox(
+                height: 50,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: MockDatabase.quickSearches.length,
+                  itemBuilder: (context, index) {
+                    final item = MockDatabase.quickSearches[index];
+                    return _quickChip(item);
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // Sort row
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -287,6 +336,8 @@ class _SearchPageState extends State<SearchPage> {
                 ],
               ),
               const SizedBox(height: 8),
+
+              // Active filters chips
               if (_filterCategory != null ||
                   _filterMinPrice != null ||
                   _filterMaxPrice != null)
@@ -297,7 +348,7 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       const Chip(label: Text('Filters active')),
                       if (_filterCategory != null)
-                        Chip(label: Text('Category: ${_filterCategory!}')),
+                        Chip(label: Text('Category: $_filterCategory')),
                       if (_filterMinPrice != null)
                         Chip(
                           label: Text(
@@ -325,6 +376,8 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 ),
               const SizedBox(height: 6),
+
+              // Results
               Expanded(
                 child: _loading
                     ? ListView.builder(
