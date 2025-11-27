@@ -11,6 +11,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final TextEditingController _searchCtrl = TextEditingController();
+  final ScrollController _chipScrollCtrl = ScrollController();
 
   @override
   void initState() {
@@ -22,6 +23,7 @@ class _HomePageState extends State<HomePage> {
   void dispose() {
     debugPrint('[HomePage] stopped');
     _searchCtrl.dispose();
+    _chipScrollCtrl.dispose();
     super.dispose();
   }
 
@@ -40,14 +42,36 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Scroll helper
+  void _scrollChips(bool forward) {
+    const double amount = 120;
+    if (forward) {
+      _chipScrollCtrl.animateTo(
+        _chipScrollCtrl.offset + amount,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    } else {
+      _chipScrollCtrl.animateTo(
+        _chipScrollCtrl.offset - amount,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Use scaffold background color for arrow container so it blends nicely
+    final bg = Theme.of(context).scaffoldBackgroundColor;
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ---------------- SEARCH BAR ----------------
             Row(
               children: [
                 Expanded(
@@ -60,8 +84,7 @@ class _HomePageState extends State<HomePage> {
                           ? null
                           : IconButton(
                               icon: const Icon(Icons.clear),
-                              onPressed: () =>
-                                  setState(() => _searchCtrl.clear()),
+                              onPressed: () => setState(() => _searchCtrl.clear()),
                             ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12.0),
@@ -87,34 +110,90 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
+
             const SizedBox(height: 18),
+
+            // ---------------- QUICK SEARCH TITLE ----------------
+            Text(
+              'Quick Search',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+
+            const SizedBox(height: 8),
+
+            //  QUICK SEARCH ----------------
+
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Quick search',
-                  style: Theme.of(context).textTheme.titleMedium,
+                Expanded(
+                  child: SizedBox(
+                    height: 42, // height of the chips
+                    child: ListView.separated(
+                      controller: _chipScrollCtrl,
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.only(left: 0, right: 110),
+                      itemCount: MockDatabase.quickSearches.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 10),
+                      itemBuilder: (context, index) {
+                        final q = MockDatabase.quickSearches[index];
+                        return GestureDetector(
+                          onTap: () => _onQuickTap(q),
+                          child: Container(
+                            constraints: const BoxConstraints(minWidth: 80),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2563EB),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              q,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-                const Icon(Icons.arrow_forward_ios, size: 14),
+
+                const SizedBox(width: 8),
+
+                // Arrow container
+                Container(
+                  width: 48,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: IconButton(
+                    splashRadius: 22,
+                    icon: const Icon(Icons.chevron_right),
+                    color: Colors.black87,
+                    onPressed: () => _scrollChips(true),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: MockDatabase.quickSearches.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final q = MockDatabase.quickSearches[index];
-                  return ActionChip(
-                    label: Text(q),
-                    onPressed: () => _onQuickTap(q),
-                  );
-                },
-              ),
-            ),
+
             const SizedBox(height: 18),
+
+            // ---------------- CATEGORIES ----------------
             Text('Categories', style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             Expanded(
@@ -140,6 +219,8 @@ class _HomePageState extends State<HomePage> {
                 },
               ),
             ),
+
+            // ---------------- FOOTER ----------------
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Row(
