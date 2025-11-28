@@ -11,7 +11,6 @@ class CategoryCard extends StatelessWidget {
     this.imagePath,
     super.key,
   });
-  
 
   @override
   Widget build(BuildContext context) {
