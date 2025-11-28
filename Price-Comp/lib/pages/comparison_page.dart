@@ -155,29 +155,49 @@ class _ComparisonPageState extends State<ComparisonPage>
                       )
                     : _error != null
                     ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: Color(0xFF3D3D3D),
+                        child: Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.red.shade300,
+                              width: 1,
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Error: $_error',
-                              style: const TextStyle(
-                                color: Color(0xFF3D3D3D),
-                                fontSize: 16,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red.shade700,
+                                size: 48,
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () => _loadComparison(),
-                              child: const Text('Retry'),
-                            ),
-                          ],
+                              const SizedBox(height: 12),
+                              Text(
+                                'Something went wrong',
+                                style: TextStyle(
+                                  color: Colors.red.shade700,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                _error!,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.red.shade600),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red.shade700,
+                                ),
+                                onPressed: () => _loadComparison(),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
                         ),
                       )
                     : filteredPrices.isEmpty

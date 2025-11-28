@@ -330,9 +330,9 @@ class MockDatabase {
     bool partial = false,
   }) async {
     await Future.delayed(Duration(milliseconds: delayMs));
-    if (fail) throw Exception('Failed to fetch comparison (mock)');
-
-    final basePrices = {'r1': 35.99, 'r2': 33.49, 'r3': 39.00, 'r4': 34.50};
+    if (fail) {
+      throw Exception("Network failed to load product comparison");
+    }
 
     List<RetailerPrice> list = [];
     for (var r in retailers) {
