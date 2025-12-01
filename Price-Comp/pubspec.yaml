@@ -15,7 +15,7 @@ dependencies:
   flutter_svg: ^2.0.9
 
   # ADDED — for SVG category icons
-  
+  flutter_svg: ^2.0.9
 
   # ADDED — for category images (PNG/JPG) with caching
   cached_network_image: ^3.3.1
