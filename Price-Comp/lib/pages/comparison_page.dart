@@ -796,3 +796,4 @@ class _ComparisonPageState extends State<ComparisonPage> {
     );
   }
 }
+/// added this so i can see it in git diff
